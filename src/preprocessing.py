@@ -187,24 +187,6 @@ scaler = StandardScaler()
 ohe_drop_first = OneHotEncoder(drop='first', handle_unknown='ignore', sparse_output=False)
 ohe_all = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
 
-## FEATURES
-
-numeric_features = ['tenure', 'MonthlyCharges', 'TotalCharges', 'avg_revenue']
-categorical_features = ['Contract', 'PaymentMethod', 'InternetService', 'tenure_group']
-engineered_features = [
-    'is_new_customer', 
-    'is_long_term', 
-    'auto_pay_flag', 
-    'num_services',
-    'high_monthly_flag', 
-    'family_flag', 
-    'fiber_flag', 
-    'electronic_check_flag',
-    'new_echeck_interaction', 
-    'fiber_highcharge_interaction', 
-    'loyal_engaged_interaction'
-]
-
 
 ### LINEAR AND TREE PREPROCESSING
 
@@ -241,5 +223,3 @@ def get_preprocessor(numeric_features, categorical_features, engineered_features
         ('feature_engineering', feature_pipeline),
         ('preprocessing', tree_preprocessor)])
     return full_pipeline_linear, full_pipeline_tree
-
-full_pipeline_linear, full_pipeline_tree = get_preprocessor(numeric_features, categorical_features,engineered_features)

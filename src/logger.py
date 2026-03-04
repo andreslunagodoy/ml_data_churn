@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-#from src.config import LOG_DIR
+from src.config import LOG_DIR
 
 def setup_logger(name: str):
     LOG_DIR.mkdir(exist_ok=True)
