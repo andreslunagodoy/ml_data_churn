@@ -1,26 +1,19 @@
-import joblib
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from src.config import CONFIG, MODEL_DIR
-from src.logger import logger
-from src.preprocessing import preprocess_data
-from src.data_loader import load_processed_data
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
-def train():
-    df = load_processed_data()
-    y = df[CONFIG["target_col"]]
-    X = df.drop(columns=[CONFIG["target_col"]])
+def train_model(X, y, model_type):
 
-    X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=CONFIG["test_size"], random_state=CONFIG["random_seed"]
-    )
+    if model_type == "logistic_regression":
+        # Instantiate baseline logistic regression
+        model = LogisticRegression(random_state=42, max_iter=1000)
 
-    X_train = preprocess_data(X_train, fit=True, scaler_path=MODEL_DIR / "scaler.pkl", encoder_path=MODEL_DIR / "encoder.pkl")
-    X_val = preprocess_data(X_val, fit=False, scaler_path=MODEL_DIR / "scaler.pkl", encoder_path=MODEL_DIR / "encoder.pkl")
+    elif model_type == "random_forest":
+        # Instantiate baseline random forest
+        model = RandomForestClassifier(random_state=42, n_estimators=100)
 
-    model = RandomForestClassifier(random_state=CONFIG["random_seed"])
-    model.fit(X_train, y_train)
+    elif model_type == "gradient_boosting":
+        # Instantiate baseline gradient boosting
+        model = GradientBoostingClassifier(random_state=42, n_estimators=100, learning_rate=0.1)
 
-    joblib.dump(model, MODEL_DIR / CONFIG["model_version"] / "model.pkl")
-    logger.info(f"Model saved to {MODEL_DIR / CONFIG['model_version'] / 'model.pkl'}")
-c
+    model.fit(X,y)
+    return model

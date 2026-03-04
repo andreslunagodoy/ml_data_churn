@@ -1,0 +1,9 @@
+2026-03-04 14:42:59,866 | train_pipeline_260304_144259 | INFO | Starting training pipeline
+2026-03-04 14:42:59,890 | train_pipeline_260304_144259 | INFO | Loaded data with shape (7043, 21)
+2026-03-04 14:42:59,897 | train_pipeline_260304_144259 | INFO | Split features and target Churn
+2026-03-04 14:42:59,912 | train_pipeline_260304_144259 | INFO | Split train and test set of size 0.2
+2026-03-04 14:42:59,979 | train_pipeline_260304_144259 | INFO | Finished preprocessing for a linear-type model
+2026-03-04 14:42:59,992 | train_pipeline_260304_144259 | INFO | Completed training a logistic_regression model
+2026-03-04 14:42:59,997 | train_pipeline_260304_144259 | INFO | Metrics: {'accuracy': 0.7927608232789212, 'roc_auc': 0.8413482652613088, 'precision': 0.6453900709219859, 'recall': 0.48663101604278075, 'f1_score': 0.5548780487804879}
+2026-03-04 14:42:59,999 | train_pipeline_260304_144259 | INFO | Saved model and preprocessor to /Users/andresluna/mlprojects/ml_churn/models/v1
+2026-03-04 14:42:59,999 | train_pipeline_260304_144259 | INFO | Training pipeline finished successfully

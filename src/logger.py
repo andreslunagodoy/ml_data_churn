@@ -1,17 +1,25 @@
 import logging
-import sys
+from pathlib import Path
+#from src.config import LOG_DIR
 
-def get_logger(name: str):
+def setup_logger(name: str):
+    LOG_DIR.mkdir(exist_ok=True)
+
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
-    handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)s | %(message)s')
-    handler.setFormatter(formatter)
-
     if not logger.handlers:
-        logger.addHandler(handler)
-    
-    return logger
+        formatter = logging.Formatter(
+            "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
+        )
 
-logger = get_logger("churn_project")
+        file_handler = logging.FileHandler(LOG_DIR / f"{name}.log")
+        file_handler.setFormatter(formatter)
+
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+
+        logger.addHandler(file_handler)
+        logger.addHandler(stream_handler)
+
+    return logger
