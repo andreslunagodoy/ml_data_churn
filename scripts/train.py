@@ -1,18 +1,16 @@
 from sklearn.model_selection import train_test_split
 import joblib
-from datetime import datetime
-from pathlib import Path
-import pandas as pd
+import json
 
-from src.config import CONFIG, MODEL_PATH, MODELS_FAMILY
+from src.config import CONFIG, MODEL_PATH, MODELS_FAMILY, TIMESTAMP
 from src.logger import setup_logger
 from src.data_loader import load_raw_data
 from src.preprocessing import get_preprocessor
 from src.train_model import train_model
 from src.evaluate import evaluate_model
 
-timestamp = datetime.now().strftime("%y%m%d_%H%M%S")
-logger = setup_logger(f"train_pipeline_{timestamp}")
+
+logger = setup_logger(f"train_pipeline_{TIMESTAMP}")
 
 def main():
     # Start logger
@@ -47,12 +45,7 @@ def main():
         'fiber_flag', 'electronic_check_flag','new_echeck_interaction', 'fiber_highcharge_interaction', 
         'loyal_engaged_interaction']
 
-    full_pipeline_linear, full_pipeline_tree = get_preprocessor(numeric_features, categorical_features, engineered_features)
-
-    if MODELS_FAMILY[CONFIG['model_type']] == "linear":
-        preprocessor = full_pipeline_linear
-    elif MODELS_FAMILY[CONFIG['model_type']] == "tree":
-        preprocessor = full_pipeline_tree
+    preprocessor = get_preprocessor(numeric_features, categorical_features, engineered_features, CONFIG['model_type'])
 
     preprocessor.fit(X_train_raw, y_train)
     X_train = preprocessor.transform(X_train_raw)
@@ -70,7 +63,11 @@ def main():
 
     # Save artifacts
     joblib.dump(model, MODEL_PATH / "model.pkl")
-    #joblib.dump(preprocessor, MODEL_PATH / "preprocessor.pkl")
+    joblib.dump(preprocessor, MODEL_PATH / "preprocessor.pkl")
+    with open(MODEL_PATH / "metrics.json", "w") as f:
+        json.dump(metrics, f, indent=4)
+    with open(MODEL_PATH / "config.json", "w") as f:
+        json.dump(CONFIG, f, indent=4)
 
     logger.info(f"Saved model and preprocessor to {MODEL_PATH}")
     logger.info("Training pipeline finished successfully")

@@ -5,6 +5,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 
+from src.config import MODELS_FAMILY
+
 ### CLEANING DATA
 
 class DataCleaner(BaseEstimator, TransformerMixin):
@@ -191,7 +193,7 @@ ohe_all = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
 ### LINEAR AND TREE PREPROCESSING
 
 
-def get_preprocessor(numeric_features, categorical_features, engineered_features):
+def get_preprocessor(numeric_features, categorical_features, engineered_features, model_type):
     # Linear model preprocessing
     num_pipeline_linear = Pipeline([
         ('imputer', median_imputer),
@@ -222,4 +224,9 @@ def get_preprocessor(numeric_features, categorical_features, engineered_features
         ('cleaning', DataCleaner()),
         ('feature_engineering', feature_pipeline),
         ('preprocessing', tree_preprocessor)])
-    return full_pipeline_linear, full_pipeline_tree
+    
+
+    if MODELS_FAMILY[model_type] == "linear":
+        return full_pipeline_linear
+    elif MODELS_FAMILY[model_type] == "tree":
+        return full_pipeline_tree

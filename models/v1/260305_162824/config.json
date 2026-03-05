@@ -1,0 +1,12 @@
+{
+    "target_column": "Churn",
+    "target_map": {
+        "Yes": 1,
+        "No": 0
+    },
+    "test_size": 0.2,
+    "random_state": 42,
+    "model_type": "logistic_regression",
+    "model_version": "v1",
+    "timestamp": "260305_162824"
+}
