@@ -1,25 +1,25 @@
 from fastapi import FastAPI
-from pydantic import ValidationError
-import pandas as pd
-from model.predict import load_model, predict
+from src.predict import predict
 from api.schemas import CustomerFeatures, PredictionResponse
 
-app = FastAPI(title="Customer Churn Prediction API")
+app = FastAPI(title="Customer Churn API", version="1.0")
 
-model = load_model()
+# Load the model and preprocessor once here
+# (optional: you can have predict_single handle loading internally)
+# model, preprocessor = load_model_and_preprocessor()
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
 @app.post("/predict", response_model=PredictionResponse)
-def make_prediction(customer: CustomerFeatures):
-    try:
-        data = pd.DataFrame([customer.dict()])
-        result = predict(model, data)
+def predict_endpoint(customer: CustomerFeatures):
+    try: 
+        input_dict = customer.model_dump()
+        result = predict(input_dict)
         return PredictionResponse(
-            prediction=int(result["prediction"][0]),
-            churn_proba=float(result["churn_proba"][0])
+            prediction=result["prediction"],
+            probability=result["probability"]
         )
-    except ValidationError as e:
-        return {"error": str(e)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

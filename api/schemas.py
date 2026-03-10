@@ -1,15 +1,27 @@
 from pydantic import BaseModel
-from typing import List
 
 class CustomerFeatures(BaseModel):
-    age: int
-    tenure: float
-    balance: float
-    products_number: int
-    has_cr_card: int
-    is_active_member: int
-    estimated_salary: float
+    customerID: str
+    gender: str
+    SeniorCitizen: int
+    Partner: str
+    Dependents: str
+    tenure: int
+    PhoneService: str
+    MultipleLines: str
+    InternetService: str
+    OnlineSecurity: str
+    OnlineBackup: str
+    DeviceProtection: str
+    TechSupport: str
+    StreamingTV: str
+    StreamingMovies: str
+    Contract: str
+    PaperlessBilling: str
+    PaymentMethod: str
+    MonthlyCharges: float
+    TotalCharges: str
 
 class PredictionResponse(BaseModel):
     prediction: int
-    churn_proba: float
+    probability: float

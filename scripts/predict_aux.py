@@ -17,6 +17,7 @@ def main():
     input_data = df_new.loc[random_idx].to_dict()
     
     #Make a prediction and print it
+    print(input_data)
     print(predict(input_data))
 
 if __name__ == "__main__":

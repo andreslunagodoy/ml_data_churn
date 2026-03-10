@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 from src.config import MODEL_DIR
 
-def predict(input_data):
+def predict(input_data: dict) -> dict:
     # Paths
     model_path = MODEL_DIR / "current/model.pkl"
     preprocessor_path = MODEL_DIR / "current/preprocessor.pkl"
