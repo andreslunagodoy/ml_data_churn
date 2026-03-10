@@ -8,3 +8,7 @@ conda activate ml_churn
 
 pip install fastapi uvicorn pandas scikit-learn joblib
 
+### For tests
+
+pip install pytest requests
+

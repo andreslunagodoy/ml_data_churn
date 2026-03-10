@@ -1,34 +1,17 @@
-# scripts/predict.py
-import joblib
 import pandas as pd
-from src.config import MODEL_DIR
 
-def predict(input_data: dict) -> dict:
-    # Paths
-    model_path = MODEL_DIR / "current/model.pkl"
-    preprocessor_path = MODEL_DIR / "current/preprocessor.pkl"
+def predict_df(df: pd.DataFrame, model, preprocessor) -> pd.DataFrame:
+    """Run predictions on a dataframe."""
 
-    # Load model and preprocessor
-    model = joblib.load(model_path)
-    preprocessor = joblib.load(preprocessor_path)
+    X = preprocessor.transform(df)
 
-    # Load new data
-    df_new = pd.DataFrame([input_data])
+    y_pred = model.predict(X)
+    y_proba = model.predict_proba(X)[:, 1]
 
-    # Preprocess
-    X_new = preprocessor.transform(df_new)
-
-    # Predict
-    y_pred = model.predict(X_new)
-    y_proba = model.predict_proba(X_new)[:, 1]
-
-    # Save predictions
-    prediction_df = pd.DataFrame({
-        "customer_id": df_new["customerID"],
+    predictions = pd.DataFrame({
+        "customer_id": df["customerID"],
         "prediction": y_pred,
         "probability": y_proba
     })
 
-    prediction_dict = prediction_df.to_dict(orient="records")[0]
-
-    return prediction_dict
+    return predictions
