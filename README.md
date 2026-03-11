@@ -11,13 +11,13 @@ This project demonstrates how a typical **data science notebook project can be r
 - FastAPI inference API
 - Logging, configuration, and testing
 
-The project is structured as a **3-week ML engineering portfolio project**:
+The project is structured as a **3-stage ML engineering portfolio project**:
 
-| Week | Focus | Outcome |
+| Stage | Focus | Outcome |
 |-----|------|------|
-| Week 1 | Data Science | Exploratory analysis and modeling in notebooks |
-| Week 2 | ML Engineering | Refactor notebook code into modular pipeline |
-| Week 3 | Deployment | API, validation, testing, and documentation |
+| Stage 1 | Data Science | Exploratory analysis and modeling in notebooks |
+| Stage 2 | ML Engineering | Refactor notebook code into modular pipeline |
+| Stage 3 | Deployment | API, validation, testing, and documentation |
 
 ---
 
@@ -39,9 +39,9 @@ The repository follows a **production-style ML project layout**.
 │   └── raw
 │       └── telco_churn.csv
 ├── input
-│   ├── new_data.csv
-│   └── values.csv
+│   └── new_data.csv
 ├── logs
+│   └── train_pipeline_timestamp.log
 ├── models
 │   ├── current
 │   │   ├── config.json
@@ -53,10 +53,8 @@ The repository follows a **production-style ML project layout**.
 ├── output
 ├── requirements.txt
 ├── scripts
-│   ├── aux_generatedata.py
 │   ├── predict.py
 │   └── train.py
-├── setup.py
 ├── src
 │   ├── config.py
 │   ├── data_loader.py
@@ -67,7 +65,9 @@ The repository follows a **production-style ML project layout**.
 │   ├── predict_single.py
 │   ├── preprocessing.py
 │   └── train_model.py
-└── tests
+├── tests
+└── tools
+    └── aux_generatedata.py
 ```
 
 ---
@@ -339,12 +339,14 @@ notebooks/
 
 Examples:
 
+- Churn_DA_v0.ipynb
+
+This notebook represents the **Week 1 Data Science phase** before refactoring.
+
 - Churn_DA_v1.ipynb
 - Churn_DA_v2.ipynb
-- Churn_DA_v3.ipynb
-- Churn_DA_v4.ipynb
 
-These notebooks represent the **Week 1 Data Science phase** before refactoring.
+These notebooks represents different stages of refactoring.
 
 ---
 
@@ -439,19 +441,11 @@ This project demonstrates **ML Engineering best practices**:
 ---
 
 # Author
+Andres Luna
+
+https://github.com/andreslunagodoy
+https://www.linkedin.com/in/andres-luna-06a31b101/
 
 Machine Learning Portfolio Project
 
 Focus: **Applied ML Engineering and Production Pipelines**
-### Conda environment
-
-conda create -n ml_churn python=3.11
-
-conda activate ml_churn
-
-pip install fastapi uvicorn pandas scikit-learn joblib
-
-### For tests
-
-pip install pytest requests
-
