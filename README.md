@@ -440,6 +440,210 @@ This project demonstrates **ML Engineering best practices**:
 
 ---
 
+# Portfolio-Level Enhancements
+
+To further demonstrate **production-grade ML engineering practices**, the project includes several features typically found in real-world ML systems.
+
+These additions make the repository closer to a **deployable ML service rather than a simple model project**.
+
+---
+
+### 1. Reproducible Training via Configuration
+
+All model training parameters are stored in a configuration file.
+
+Example configuration:
+
+```
+models/current/config.json
+```
+
+Example contents:
+
+```
+{
+    "target_column": "Churn",
+    "target_map": {
+        "Yes": 1,
+        "No": 0
+    },
+    "test_size": 0.2,
+    "random_state": 42,
+    "model_type": "logistic_regression",
+    "timestamp": "260305_160127"
+}
+```
+
+Benefits:
+
+- Ensures experiments are reproducible
+- Allows easy hyperparameter changes
+- Separates **code from configuration**
+
+---
+
+### 2. Model Artifact Management
+
+Training produces a **complete model artifact bundle** rather than only a single model file.
+
+Each model version contains:
+
+```
+models/current/
+├── model.pkl
+├── preprocessor.pkl
+├── metrics.json
+└── config.json
+```
+
+Artifact descriptions:
+
+| Artifact | Purpose |
+|--------|--------|
+| model.pkl | Trained ML model |
+| preprocessor.pkl | Feature engineering pipeline |
+| metrics.json | Evaluation metrics |
+| config.json | Training configuration |
+
+Why this matters:
+
+Production ML systems must keep **all components required to reproduce predictions**, not just the model weights.
+
+This ensures:
+
+- reproducibility
+- rollback capability
+- consistent preprocessing during inference
+
+---
+
+### 3. Timestamped Prediction Outputs
+
+Batch predictions automatically generate **timestamped output directories**.
+
+Example:
+
+```
+output/
+├── 260305_171456/
+│   └── predictions.csv
+├── 260310_163059/
+│   └── predictions.csv
+```
+
+Benefits:
+
+- Every prediction run is preserved
+- Results are easy to audit
+- No risk of overwriting previous outputs
+
+This mirrors how **production inference jobs** are logged in real ML pipelines.
+
+---
+
+### 4. Structured Logging
+
+The project uses centralized logging utilities located in:
+
+```
+src/logger.py
+```
+
+Logs are stored in:
+
+```
+logs/
+```
+
+Example logged events:
+
+- Training start and completion
+- Dataset loading
+- Model evaluation results
+
+Logging is essential for:
+
+- debugging pipelines
+- monitoring model performance
+- production observability
+
+---
+
+### 5. API Input Validation
+
+The FastAPI service validates all incoming prediction requests using **Pydantic schemas**.
+
+Defined in:
+
+```
+api/schemas.py
+```
+
+Benefits:
+
+- prevents malformed inputs
+- ensures feature types are correct
+- improves API reliability
+
+Example validation features:
+
+- type checking
+- required fields
+- structured request format
+
+---
+
+### 6. Automated Testing
+
+Unit tests are included for key components of the system.
+
+Location:
+
+```
+tests/
+```
+
+Example tests:
+
+| Test File | Coverage |
+|---------|---------|
+| test_model.py | model loading and prediction |
+| test_predict.py | batch prediction pipeline |
+| test_api.py | API endpoints |
+
+Run all tests with:
+
+```
+pytest tests/
+```
+
+Testing ensures:
+
+- prediction logic works
+- API endpoints remain stable
+- future refactoring does not break the pipeline
+
+---
+
+## Why These Features Matter
+
+Many ML portfolio projects stop at:
+
+- training a model
+- saving a `.pkl`
+- showing accuracy
+
+This project demonstrates **ML Engineering practices used in real production systems**:
+
+- modular ML pipelines
+- model artifact management
+- API-based inference
+- reproducible experiments
+- structured logging
+- automated tests
+
+These practices bridge the gap between **Data Science prototypes and deployable ML systems**.
+
 # Author
 Andres Luna
 
