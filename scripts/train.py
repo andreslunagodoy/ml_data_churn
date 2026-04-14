@@ -1,11 +1,12 @@
 from sklearn.model_selection import train_test_split
+import argparse
 import joblib
 import json
 
-from src.config import CONFIG, MODEL_PATH, MODELS_FAMILY, TIMESTAMP
+from src.config import CONFIG, MODEL_PATH, MODELS_FAMILY, TIMESTAMP, BASE_DIR
 from src.logger import setup_logger
 from src.data_loader import load_raw_data
-from src.preprocessing import get_preprocessor
+from src.preprocessing import get_preprocessor, NUMERIC_FEATURES, CATEGORICAL_FEATURES, ENGINEERED_FEATURES
 from src.train_model import train_model
 from src.evaluate import evaluate_model
 
@@ -13,6 +14,14 @@ from src.evaluate import evaluate_model
 logger = setup_logger(f"train_pipeline_{TIMESTAMP}")
 
 def main():
+    parser = argparse.ArgumentParser(description="Train churn prediction model")
+    parser.add_argument("--config", type=str, default=None, help="Path to config YAML file (default: config.yaml)")
+    args = parser.parse_args()
+
+    if args.config:
+        import yaml
+        with open(args.config) as f:
+            CONFIG.update(yaml.safe_load(f))
     # Start logger
     logger.info("Starting training pipeline")
 
@@ -37,15 +46,7 @@ def main():
     logger.info(f"Split train and test set of size {CONFIG['test_size']}")
 
     # Preprocessing
-    ## FEATURES
-    numeric_features = ['tenure', 'MonthlyCharges', 'TotalCharges', 'avg_revenue']
-    categorical_features = ['Contract', 'PaymentMethod', 'InternetService', 'tenure_group']
-    engineered_features = [
-        'is_new_customer', 'is_long_term', 'auto_pay_flag', 'num_services', 'high_monthly_flag', 'family_flag', 
-        'fiber_flag', 'electronic_check_flag','new_echeck_interaction', 'fiber_highcharge_interaction', 
-        'loyal_engaged_interaction']
-
-    preprocessor = get_preprocessor(numeric_features, categorical_features, engineered_features, CONFIG['model_type'])
+    preprocessor = get_preprocessor(NUMERIC_FEATURES, CATEGORICAL_FEATURES, ENGINEERED_FEATURES, CONFIG['model_type'])
 
     preprocessor.fit(X_train_raw, y_train)
     X_train = preprocessor.transform(X_train_raw)

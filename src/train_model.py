@@ -1,7 +1,9 @@
+import numpy as np
+from sklearn.base import BaseEstimator
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 
-def train_model(X, y, model_type):
+def train_model(X: np.ndarray, y: np.ndarray, model_type: str) -> BaseEstimator:
 
     if model_type == "logistic_regression":
         # Instantiate baseline logistic regression

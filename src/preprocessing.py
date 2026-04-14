@@ -10,6 +10,7 @@ from src.config import MODELS_FAMILY
 ### CLEANING DATA
 
 class DataCleaner(BaseEstimator, TransformerMixin):
+    """Converts types and maps categorical columns to numeric values."""
     def fit(self, X, y=None):
         self.n_features_in_ = X.shape[1]
         return self
@@ -54,6 +55,7 @@ class DataCleaner(BaseEstimator, TransformerMixin):
 ### FEATURE ENGINEERING
 
 class FeatureEngineer(BaseEstimator, TransformerMixin):
+    """Creates tenure groups and average revenue features."""
     def fit(self, X, y=None):
         self.median_charge_ = X['MonthlyCharges'].median()
         return self
@@ -72,22 +74,8 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
 
         return X
     
-class FlagBuilder(BaseEstimator, TransformerMixin):
-    def __init__(self, flag_configs):
-        self.flag_configs = flag_configs
-
-    def fit(self, X, y=None):
-        self.n_features_in_ = X.shape[1]
-        return self
-
-    def transform(self, X):
-        X = X.copy()
-        for new_col, func in self.flag_configs.items():
-            X[new_col] = func(X).astype(int)
-        return X
-
-
 class HighMonthlyFlag(BaseEstimator, TransformerMixin):
+    """Flags customers with above-median monthly charges."""
     def fit(self, X, y=None):
         self.median_ = X['MonthlyCharges'].median()
         return self
@@ -99,6 +87,7 @@ class HighMonthlyFlag(BaseEstimator, TransformerMixin):
     
 
 class ServiceCounter(BaseEstimator, TransformerMixin):
+    """Counts the number of active services per customer."""
     def __init__(self, service_cols):
         self.service_cols = service_cols
 
@@ -113,6 +102,7 @@ class ServiceCounter(BaseEstimator, TransformerMixin):
     
 
 class InteractionBuilder(BaseEstimator, TransformerMixin):
+    """Creates interaction features by multiplying pairs of columns."""
     def __init__(self, interactions):
         self.interactions = interactions
 
@@ -177,6 +167,13 @@ feature_pipeline = Pipeline([
         'fiber_highcharge_interaction': ('fiber_flag', 'high_monthly_flag'),
         'loyal_engaged_interaction': ('is_long_term', 'num_services'),}))])
 
+NUMERIC_FEATURES = ['tenure', 'MonthlyCharges', 'TotalCharges', 'avg_revenue']
+CATEGORICAL_FEATURES = ['Contract', 'PaymentMethod', 'InternetService', 'tenure_group']
+ENGINEERED_FEATURES = [
+    'is_new_customer', 'is_long_term', 'auto_pay_flag', 'num_services',
+    'high_monthly_flag', 'family_flag', 'fiber_flag', 'electronic_check_flag',
+    'new_echeck_interaction', 'fiber_highcharge_interaction', 'loyal_engaged_interaction']
+
 
 ## REAUSABLE PREPROCESSING COMPONENTS
 
@@ -193,7 +190,7 @@ ohe_all = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
 ### LINEAR AND TREE PREPROCESSING
 
 
-def get_preprocessor(numeric_features, categorical_features, engineered_features, model_type):
+def get_preprocessor(numeric_features: list[str], categorical_features: list[str], engineered_features: list[str], model_type: str) -> Pipeline:
     # Linear model preprocessing
     num_pipeline_linear = Pipeline([
         ('imputer', median_imputer),
