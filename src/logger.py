@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from src.config import LOG_DIR
 
 def setup_logger(name: str):

@@ -5,7 +5,7 @@ from src.predict import predict_df
 
 def predict_single(input_data: dict, model: BaseEstimator, preprocessor: Pipeline) -> dict:
     """Predict a single customer."""
-    
+
     df = pd.DataFrame([input_data])
     predictions = predict_df(df, model, preprocessor)
 

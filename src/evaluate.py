@@ -14,4 +14,4 @@ def evaluate_model(model: BaseEstimator, X_test: np.ndarray, y_test: np.ndarray)
         "f1_score": f1_score(y_test, y_pred)
     }
 
-    return metrics 
+    return metrics

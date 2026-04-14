@@ -8,7 +8,10 @@ from src.predict import predict_df
 def main():
     parser = argparse.ArgumentParser(description="Run batch churn predictions")
     parser.add_argument("--input", type=str, default=None, help="Path to input CSV (default: input/new_data.csv)")
-    parser.add_argument("--output", type=str, default=None, help="Path to output CSV (default: output/<timestamp>/predictions.csv)")
+    parser.add_argument(
+        "--output", type=str, default=None,
+        help="Path to output CSV (default: output/<timestamp>/predictions.csv)"
+    )
     args = parser.parse_args()
 
     input_data_path = Path(args.input) if args.input else INPUT_DIR / "new_data.csv"

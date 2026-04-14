@@ -49,7 +49,7 @@ class DataCleaner(BaseEstimator, TransformerMixin):
                 X[col] = (X[col] == 'Yes').astype(int)
 
         return X
-    
+
 
 
 ### FEATURE ENGINEERING
@@ -73,7 +73,7 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         X['avg_revenue'] = X['TotalCharges'] / (X['tenure'] + 1)
 
         return X
-    
+
 class HighMonthlyFlag(BaseEstimator, TransformerMixin):
     """Flags customers with above-median monthly charges."""
     def fit(self, X, y=None):
@@ -84,7 +84,7 @@ class HighMonthlyFlag(BaseEstimator, TransformerMixin):
         X = X.copy()
         X['high_monthly_flag'] = (X['MonthlyCharges'] > self.median_).astype(int)
         return X
-    
+
 
 class ServiceCounter(BaseEstimator, TransformerMixin):
     """Counts the number of active services per customer."""
@@ -99,7 +99,7 @@ class ServiceCounter(BaseEstimator, TransformerMixin):
         X = X.copy()
         X['num_services'] = (X[self.service_cols] == 'Yes').sum(axis=1)
         return X
-    
+
 
 class InteractionBuilder(BaseEstimator, TransformerMixin):
     """Creates interaction features by multiplying pairs of columns."""
@@ -145,7 +145,7 @@ class FlagBuilder(BaseEstimator, TransformerMixin):
         for col, func in self.flag_funcs.items():
             X[col] = func(X).astype(int)
         return X
-    
+
 flag_builder = FlagBuilder({
     'is_new_customer': is_new_customer,
     'is_long_term': is_long_term,
@@ -190,7 +190,12 @@ ohe_all = OneHotEncoder(handle_unknown='ignore', sparse_output=False)
 ### LINEAR AND TREE PREPROCESSING
 
 
-def get_preprocessor(numeric_features: list[str], categorical_features: list[str], engineered_features: list[str], model_type: str) -> Pipeline:
+def get_preprocessor(
+    numeric_features: list[str],
+    categorical_features: list[str],
+    engineered_features: list[str],
+    model_type: str,
+) -> Pipeline:
     # Linear model preprocessing
     num_pipeline_linear = Pipeline([
         ('imputer', median_imputer),
@@ -221,7 +226,7 @@ def get_preprocessor(numeric_features: list[str], categorical_features: list[str
         ('cleaning', DataCleaner()),
         ('feature_engineering', feature_pipeline),
         ('preprocessing', tree_preprocessor)])
-    
+
 
     if MODELS_FAMILY[model_type] == "linear":
         return full_pipeline_linear

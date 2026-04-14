@@ -3,7 +3,7 @@ import argparse
 import joblib
 import json
 
-from src.config import CONFIG, MODEL_PATH, MODELS_FAMILY, TIMESTAMP, BASE_DIR
+from src.config import CONFIG, MODEL_PATH, MODELS_FAMILY, TIMESTAMP
 from src.logger import setup_logger
 from src.data_loader import load_raw_data
 from src.preprocessing import get_preprocessor, NUMERIC_FEATURES, CATEGORICAL_FEATURES, ENGINEERED_FEATURES

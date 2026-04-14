@@ -1,4 +1,6 @@
 import pandas as pd
+from sklearn.base import BaseEstimator
+from sklearn.pipeline import Pipeline
 
 REQUIRED_COLUMNS = [
     'customerID', 'tenure', 'MonthlyCharges', 'TotalCharges', 'Contract',
@@ -8,8 +10,6 @@ REQUIRED_COLUMNS = [
     'TechSupport', 'StreamingTV', 'StreamingMovies',
 ]
 
-from sklearn.base import BaseEstimator
-from sklearn.pipeline import Pipeline
 
 def predict_df(df: pd.DataFrame, model: BaseEstimator, preprocessor: Pipeline) -> pd.DataFrame:
     """Run predictions on a dataframe."""

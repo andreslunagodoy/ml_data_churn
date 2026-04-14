@@ -9,6 +9,9 @@ This project demonstrates how a typical **data science notebook project can be r
 - Versioned models
 - Batch predictions
 - FastAPI inference API
+- Input validation with Pydantic
+- CI/CD with GitHub Actions
+- Docker containerization
 - Logging, configuration, and testing
 
 The project is structured as a **3-stage ML engineering portfolio project**:
@@ -17,7 +20,7 @@ The project is structured as a **3-stage ML engineering portfolio project**:
 |-----|------|------|
 | Stage 1 | Data Science | Exploratory analysis and modeling in notebooks |
 | Stage 2 | ML Engineering | Refactor notebook code into modular pipeline |
-| Stage 3 | Deployment | API, validation, testing, and documentation |
+| Stage 3 | Deployment | API, validation, testing, CI/CD, and Docker |
 
 ---
 
@@ -27,7 +30,12 @@ The repository follows a **production-style ML project layout**.
 
 ```
 .
+├── .github/workflows/ci.yml
+├── Dockerfile
 ├── README.md
+├── config.yaml
+├── pyproject.toml
+├── requirements.txt
 ├── api
 │   ├── main.py
 │   └── schemas.py
@@ -41,7 +49,6 @@ The repository follows a **production-style ML project layout**.
 ├── input
 │   └── new_data.csv
 ├── logs
-│   └── train_pipeline_timestamp.log
 ├── models
 │   ├── current
 │   │   ├── config.json
@@ -51,7 +58,6 @@ The repository follows a **production-style ML project layout**.
 │   └── v1
 ├── notebooks
 ├── output
-├── requirements.txt
 ├── scripts
 │   ├── predict.py
 │   └── train.py
@@ -66,6 +72,10 @@ The repository follows a **production-style ML project layout**.
 │   ├── preprocessing.py
 │   └── train_model.py
 ├── tests
+│   ├── test_api.py
+│   ├── test_data_loader.py
+│   ├── test_model.py
+│   └── test_predict.py
 └── tools
     └── aux_generatedata.py
 ```
@@ -105,8 +115,8 @@ Prediction (Batch or API)
 Clone the repository:
 
 ```
-git clone <repo_url>
-cd churn-ml-pipeline
+git clone https://github.com/andreslunagodoy/ml_data_churn.git
+cd ml_data_churn
 ```
 
 Create a virtual environment:
@@ -124,6 +134,29 @@ pip install -r requirements.txt
 
 ---
 
+# Configuration
+
+Training parameters are defined in `config.yaml` at the project root:
+
+```yaml
+target_column: "Churn"
+target_map:
+  "Yes": 1
+  "No": 0
+test_size: 0.2
+random_state: 42
+model_type: "logistic_regression"
+model_version: "v1"
+```
+
+To change the model type or training parameters, edit this file — no code changes needed. You can also pass an alternative config file when training:
+
+```
+python -m scripts.train --config path/to/other_config.yaml
+```
+
+---
+
 # Dataset
 
 The project uses the **Telco Customer Churn dataset**.
@@ -134,11 +167,7 @@ Location:
 data/raw/telco_churn.csv
 ```
 
-Target variable:
-
-```
-Churn
-```
+Target variable: `Churn`
 
 Typical features include:
 
@@ -156,7 +185,7 @@ Typical features include:
 Training runs the full pipeline:
 
 1. Load data
-2. Apply preprocessing
+2. Apply preprocessing (cleaning, feature engineering, scaling/encoding)
 3. Train model
 4. Evaluate performance
 5. Save model artifacts
@@ -164,23 +193,17 @@ Training runs the full pipeline:
 Run training:
 
 ```
-python scripts/train.py
+python -m scripts.train
 ```
 
-Artifacts are saved to:
-
-```
-models/current/
-```
-
-Files generated:
+Artifacts are saved to `models/current/`:
 
 | File | Description |
 |----|----|
 | model.pkl | Trained ML model |
 | preprocessor.pkl | Feature preprocessing pipeline |
 | metrics.json | Model evaluation metrics |
-| config.json | Training configuration |
+| config.json | Training configuration snapshot |
 
 ---
 
@@ -188,51 +211,37 @@ Files generated:
 
 Models are stored in the `models/` directory.
 
-Example:
-
 ```
 models/
-├── current/
+├── current/          # Latest model (tracked in git)
 │   ├── model.pkl
 │   ├── preprocessor.pkl
 │   ├── metrics.json
 │   └── config.json
-└── v1/
+└── v1/               # Historical versions (git-ignored)
 ```
 
-Workflow:
-
-- Each training run produces artifacts
-- `current/` holds the latest model
-- Older versions can be archived as `v1`, `v2`, etc.
-
-This mimics **basic experiment tracking and model registry behavior**.
+- `current/` holds the latest model and is tracked in git so the API works immediately after cloning
+- Older versions are archived under `v1/`, `v2/`, etc. and are git-ignored to avoid bloating the repo
+- The model loader validates that model and preprocessor come from the same directory and that a `config.json` is present
 
 ---
 
 # Batch Predictions
 
-Batch predictions are run using the prediction script.
-
-Input data example:
+Run batch predictions with:
 
 ```
-input/new_data.csv
+python -m scripts.predict
 ```
 
-Run prediction:
+By default, reads from `input/new_data.csv` and writes to a timestamped directory under `output/`. You can override paths:
 
 ```
-python scripts/predict.py --input input/new_data.csv
+python -m scripts.predict --input path/to/data.csv --output path/to/results.csv
 ```
 
-Predictions are stored in a timestamped directory:
-
-```
-output/
-└── 260310_170204/
-    └── predictions.csv
-```
+Input data is validated against a required column list before preprocessing.
 
 ---
 
@@ -246,16 +255,21 @@ Start the API:
 uvicorn api.main:app --reload
 ```
 
-Default endpoint:
+Endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/predict` | POST | Single customer prediction |
+| `/docs` | GET | Interactive API documentation |
+
+The model and preprocessor are loaded once at startup via FastAPI's lifespan pattern and stored on `app.state`.
+
+### Running with Docker
 
 ```
-http://127.0.0.1:8000
-```
-
-Interactive documentation:
-
-```
-http://127.0.0.1:8000/docs
+docker build -t churn-api .
+docker run -p 8000:8000 churn-api
 ```
 
 ---
@@ -264,387 +278,165 @@ http://127.0.0.1:8000/docs
 
 Example input JSON:
 
-```
+```json
 {
+  "customerID": "3524-WQDSG",
   "gender": "Female",
   "SeniorCitizen": 0,
   "Partner": "Yes",
-  "Dependents": "No",
-  "tenure": 12,
+  "Dependents": "Yes",
+  "tenure": 43,
   "PhoneService": "Yes",
+  "MultipleLines": "Yes",
   "InternetService": "Fiber optic",
+  "OnlineSecurity": "No",
+  "OnlineBackup": "No",
+  "DeviceProtection": "Yes",
+  "TechSupport": "No",
+  "StreamingTV": "Yes",
+  "StreamingMovies": "Yes",
   "Contract": "Month-to-month",
-  "MonthlyCharges": 85.5,
-  "TotalCharges": 1025.0
+  "PaperlessBilling": "Yes",
+  "PaymentMethod": "Bank transfer (automatic)",
+  "MonthlyCharges": 99.3,
+  "TotalCharges": "4209.95"
 }
 ```
 
 Example response:
 
-```
+```json
 {
-  "churn_probability": 0.73,
-  "prediction": "Yes"
+  "prediction": 0,
+  "probability": 0.31
 }
 ```
 
----
+### Input Validation
 
-# Logging
+All API inputs are validated with Pydantic using `Literal` types for categorical fields and `Field` constraints for numeric fields. Invalid requests return a 422 with details on what's wrong. For example:
 
-All pipeline runs generate logs stored in:
-
-```
-logs/
-```
-
-Logging captures:
-
-- Training start/end
-- Data loading
-- Model training
-- Evaluation metrics
-- Prediction runs
-- API events
-
-This mimics **production observability practices**.
+- `gender` only accepts `"Male"` or `"Female"`
+- `Contract` only accepts `"Month-to-month"`, `"One year"`, or `"Two year"`
+- `tenure` must be >= 0
+- `MonthlyCharges` must be >= 0
 
 ---
 
 # Testing
 
-Basic unit tests are provided for key modules.
+The test suite covers model loading, prediction logic, API endpoints, data loading, and input validation.
 
-Test coverage includes:
+| Test File | Tests | What it covers |
+|-----------|-------|---------------|
+| test_api.py | 9 | Health check, prediction, invalid inputs (bad gender, contract, negative tenure, etc.) |
+| test_data_loader.py | 2 | Successful load, missing file error |
+| test_model.py | 3 | Model/preprocessor loading, required methods |
+| test_predict.py | 4 | Single prediction, output columns, missing columns, probability range |
 
-- Model loading
-- Prediction logic
-- API endpoints
-
-Run tests with:
+Run all tests:
 
 ```
-pytest tests/
+pytest tests/ -v
 ```
+
+---
+
+# CI/CD
+
+A **GitHub Actions** pipeline runs automatically on every push to `main` and on pull requests.
+
+The pipeline runs two jobs:
+
+### Lint and Test
+
+1. Install dependencies
+2. **Lint** with `ruff` — catches style issues, unused imports, common mistakes
+3. **Type check** with `mypy` — verifies type hint consistency
+4. **Train model** — trains from scratch so integration tests can run
+5. **Run tests** — full test suite (18 tests)
+
+### Docker Build
+
+1. **Build Docker image** — verifies the Dockerfile and dependencies work
+
+Configuration for `ruff` and `mypy` lives in `pyproject.toml`.
+
+---
+
+# Logging
+
+All pipeline runs generate logs stored in `logs/`. Each training run creates a timestamped log file.
+
+Logging captures:
+
+- Training start/end
+- Data loading
+- Preprocessing steps
+- Model evaluation metrics
 
 ---
 
 # Notebooks
 
-Exploratory analysis and early modeling were done in:
+Exploratory analysis and early modeling were done in `notebooks/`:
 
-```
-notebooks/
-```
+| Notebook | Stage |
+|----------|-------|
+| Churn_DA_v0.ipynb | Initial data science exploration |
+| Churn_DA_v1.ipynb | First refactoring pass |
+| Churn_DA_v2.ipynb | Final refactoring into modular pipeline |
 
-Examples:
-
-- Churn_DA_v0.ipynb
-
-This notebook represents the **Week 1 Data Science phase** before refactoring.
-
-- Churn_DA_v1.ipynb
-- Churn_DA_v2.ipynb
-
-These notebooks represents different stages of refactoring.
+These represent the progression from notebook prototype to production code.
 
 ---
 
 # Core Source Modules
 
-The `src/` package contains the **modular ML pipeline components**.
+The `src/` package contains the **modular ML pipeline components**. All functions include type hints.
 
 | Module | Purpose |
 |------|------|
-| config.py | Project configuration |
-| data_loader.py | Data ingestion |
-| preprocessing.py | Feature preprocessing |
-| train_model.py | Model training |
-| evaluate.py | Model evaluation |
-| model_loader.py | Loading saved artifacts |
-| predict.py | Batch prediction logic |
+| config.py | Loads configuration from `config.yaml`, defines project paths |
+| data_loader.py | Data ingestion with file existence and empty data validation |
+| preprocessing.py | Feature engineering, cleaning, and sklearn preprocessing pipelines |
+| train_model.py | Model training (logistic regression, random forest, gradient boosting) |
+| evaluate.py | Model evaluation (accuracy, ROC-AUC, precision, recall, F1) |
+| model_loader.py | Loading saved artifacts with compatibility validation |
+| predict.py | Batch prediction with column validation |
 | predict_single.py | Single record prediction |
 | logger.py | Logging utilities |
 
 ---
 
-# Scripts
+# Tech Stack
 
-Scripts provide **CLI entry points** for pipeline operations.
+**Machine Learning:** scikit-learn, pandas, numpy
 
-| Script | Purpose |
-|------|------|
-| scripts/train.py | Train and save a model |
-| scripts/predict.py | Run batch predictions |
-| scripts/aux_generatedata.py | Generate example data |
+**API:** FastAPI, Uvicorn, Pydantic
 
----
+**Testing:** pytest
 
-# Example Input Data
+**CI/CD:** GitHub Actions, ruff, mypy
 
-Example JSON input for API testing:
-
-```
-data/examples/example_dict.json
-```
+**Deployment:** Docker
 
 ---
 
 # Future Improvements
 
-Potential next steps to extend the project:
+Potential next steps:
 
-- Docker containerization
-- CI/CD pipeline
-- Model monitoring
-- Data drift detection
+- Model monitoring and data drift detection
 - Experiment tracking (MLflow)
 - Feature store integration
-- Automated retraining
+- Automated retraining triggers
+- CD pipeline (push Docker image to registry, deploy to cloud)
 
 ---
-
-# Tech Stack
-
-Machine Learning
-
-- scikit-learn
-- pandas
-- numpy
-
-API
-
-- FastAPI
-- Uvicorn
-- Pydantic
-
-Engineering
-
-- Python packaging
-- Logging
-- Modular pipelines
-- Pytest
-
----
-
-# Learning Goals
-
-This project demonstrates **ML Engineering best practices**:
-
-- Refactoring notebooks into production code
-- Modular pipeline design
-- Reproducible training
-- Model artifact management
-- Serving ML models through APIs
-- Testing ML systems
-
----
-
-# Portfolio-Level Enhancements
-
-To further demonstrate **production-grade ML engineering practices**, the project includes several features typically found in real-world ML systems.
-
-These additions make the repository closer to a **deployable ML service rather than a simple model project**.
-
----
-
-### 1. Reproducible Training via Configuration
-
-All model training parameters are stored in a configuration file.
-
-Example configuration:
-
-```
-models/current/config.json
-```
-
-Example contents:
-
-```
-{
-    "target_column": "Churn",
-    "target_map": {
-        "Yes": 1,
-        "No": 0
-    },
-    "test_size": 0.2,
-    "random_state": 42,
-    "model_type": "logistic_regression",
-    "timestamp": "260305_160127"
-}
-```
-
-Benefits:
-
-- Ensures experiments are reproducible
-- Allows easy hyperparameter changes
-- Separates **code from configuration**
-
----
-
-### 2. Model Artifact Management
-
-Training produces a **complete model artifact bundle** rather than only a single model file.
-
-Each model version contains:
-
-```
-models/current/
-├── model.pkl
-├── preprocessor.pkl
-├── metrics.json
-└── config.json
-```
-
-Artifact descriptions:
-
-| Artifact | Purpose |
-|--------|--------|
-| model.pkl | Trained ML model |
-| preprocessor.pkl | Feature engineering pipeline |
-| metrics.json | Evaluation metrics |
-| config.json | Training configuration |
-
-Why this matters:
-
-Production ML systems must keep **all components required to reproduce predictions**, not just the model weights.
-
-This ensures:
-
-- reproducibility
-- rollback capability
-- consistent preprocessing during inference
-
----
-
-### 3. Timestamped Prediction Outputs
-
-Batch predictions automatically generate **timestamped output directories**.
-
-Example:
-
-```
-output/
-├── 260305_171456/
-│   └── predictions.csv
-├── 260310_163059/
-│   └── predictions.csv
-```
-
-Benefits:
-
-- Every prediction run is preserved
-- Results are easy to audit
-- No risk of overwriting previous outputs
-
-This mirrors how **production inference jobs** are logged in real ML pipelines.
-
----
-
-### 4. Structured Logging
-
-The project uses centralized logging utilities located in:
-
-```
-src/logger.py
-```
-
-Logs are stored in:
-
-```
-logs/
-```
-
-Example logged events:
-
-- Training start and completion
-- Dataset loading
-- Model evaluation results
-
-Logging is essential for:
-
-- debugging pipelines
-- monitoring model performance
-- production observability
-
----
-
-### 5. API Input Validation
-
-The FastAPI service validates all incoming prediction requests using **Pydantic schemas**.
-
-Defined in:
-
-```
-api/schemas.py
-```
-
-Benefits:
-
-- prevents malformed inputs
-- ensures feature types are correct
-- improves API reliability
-
-Example validation features:
-
-- type checking
-- required fields
-- structured request format
-
----
-
-### 6. Automated Testing
-
-Unit tests are included for key components of the system.
-
-Location:
-
-```
-tests/
-```
-
-Example tests:
-
-| Test File | Coverage |
-|---------|---------|
-| test_model.py | model loading and prediction |
-| test_predict.py | batch prediction pipeline |
-| test_api.py | API endpoints |
-
-Run all tests with:
-
-```
-pytest tests/
-```
-
-Testing ensures:
-
-- prediction logic works
-- API endpoints remain stable
-- future refactoring does not break the pipeline
-
----
-
-## Why These Features Matter
-
-Many ML portfolio projects stop at:
-
-- training a model
-- saving a `.pkl`
-- showing accuracy
-
-This project demonstrates **ML Engineering practices used in real production systems**:
-
-- modular ML pipelines
-- model artifact management
-- API-based inference
-- reproducible experiments
-- structured logging
-- automated tests
-
-These practices bridge the gap between **Data Science prototypes and deployable ML systems**.
 
 # Author
+
 Andres Luna
 
 https://github.com/andreslunagodoy
