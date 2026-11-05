@@ -69,6 +69,8 @@ def main():
         json.dump(metrics, f, indent=4)
     with open(MODEL_PATH / "config.json", "w") as f:
         json.dump(CONFIG, f, indent=4)
+    # Test split (raw features) saved as a stand-in for new data in batch predictions
+    X_test_raw.to_csv(MODEL_PATH / "proxy_input.csv", index=False)
 
     logger.info(f"Saved model and preprocessor to {MODEL_PATH}")
     logger.info("Training pipeline finished successfully")

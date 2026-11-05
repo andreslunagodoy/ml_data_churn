@@ -46,15 +46,14 @@ The repository follows a **production-style ML project layout**.
 │   ├── processed
 │   └── raw
 │       └── telco_churn.csv
-├── input
-│   └── new_data.csv
 ├── logs
 ├── models
 │   ├── current
 │   │   ├── config.json
 │   │   ├── metrics.json
 │   │   ├── model.pkl
-│   │   └── preprocessor.pkl
+│   │   ├── preprocessor.pkl
+│   │   └── proxy_input.csv
 │   └── v1
 ├── notebooks
 ├── output
@@ -71,13 +70,11 @@ The repository follows a **production-style ML project layout**.
 │   ├── predict_single.py
 │   ├── preprocessing.py
 │   └── train_model.py
-├── tests
-│   ├── test_api.py
-│   ├── test_data_loader.py
-│   ├── test_model.py
-│   └── test_predict.py
-└── tools
-    └── aux_generatedata.py
+└── tests
+    ├── test_api.py
+    ├── test_data_loader.py
+    ├── test_model.py
+    └── test_predict.py
 ```
 
 ---
@@ -122,8 +119,8 @@ cd ml_data_churn
 Create a virtual environment:
 
 ```
-python -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 ```
 
 Install dependencies:
@@ -204,6 +201,7 @@ Artifacts are saved to `models/current/`:
 | preprocessor.pkl | Feature preprocessing pipeline |
 | metrics.json | Model evaluation metrics |
 | config.json | Training configuration snapshot |
+| proxy_input.csv | Test-split features, a stand-in for new data in batch predictions |
 
 ---
 
@@ -235,7 +233,7 @@ Run batch predictions with:
 python -m scripts.predict
 ```
 
-By default, reads from `input/new_data.csv` and writes to a timestamped directory under `output/`. You can override paths:
+By default, reads from `models/current/proxy_input.csv` (the test split saved by training, used as a stand-in for new data) and writes to a timestamped directory under `output/`. You can override paths:
 
 ```
 python -m scripts.predict --input path/to/data.csv --output path/to/results.csv

@@ -3,3 +3,6 @@ __pycache__/
 models/v1/
 logs/
 output/
+
+venv/
+.venv/
