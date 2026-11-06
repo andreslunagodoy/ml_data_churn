@@ -1,5 +1,5 @@
 import pytest
-from src.config import validate_model_type
+from src.config import MODEL_DIR, get_model_path, load_config, validate_model_type
 from src.train_model import train_model
 
 
@@ -17,3 +17,36 @@ def test_validate_model_type_rejects_unknown_type():
 def test_train_model_rejects_unknown_type():
     with pytest.raises(ValueError, match="Unknown model_type"):
         train_model([[0], [1]], [0, 1], "xyz")
+
+
+def _override(tmp_path, text):
+    path = tmp_path / "override.yaml"
+    path.write_text(text)
+    return path
+
+
+def test_load_config_has_timestamp():
+    assert "timestamp" in load_config()
+
+
+def test_override_changes_only_given_keys(tmp_path):
+    config = load_config(_override(tmp_path, "random_state: 7\n"))
+    assert config["random_state"] == 7
+    assert config["test_size"] == load_config()["test_size"]
+
+
+def test_override_rejects_unknown_key(tmp_path):
+    with pytest.raises(ValueError, match="Unknown config keys"):
+        load_config(_override(tmp_path, "random_stat: 1\n"))
+
+
+def test_override_rejects_invalid_values(tmp_path):
+    with pytest.raises(ValueError, match="test_size"):
+        load_config(_override(tmp_path, "test_size: 5\n"))
+    with pytest.raises(ValueError, match="Unknown model_type"):
+        load_config(_override(tmp_path, 'model_type: "xyz"\n'))
+
+
+def test_model_path_follows_override(tmp_path):
+    config = load_config(_override(tmp_path, 'model_version: "v2"\n'))
+    assert get_model_path(config) == MODEL_DIR / "v2" / config["timestamp"]

@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
-models/v1/
+models/*
+!models/current/
 logs/
 output/
 
