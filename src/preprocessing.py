@@ -57,7 +57,6 @@ class DataCleaner(BaseEstimator, TransformerMixin):
 class FeatureEngineer(BaseEstimator, TransformerMixin):
     """Creates tenure groups and average revenue features."""
     def fit(self, X, y=None):
-        self.median_charge_ = X['MonthlyCharges'].median()
         return self
 
     def transform(self, X):
@@ -66,8 +65,9 @@ class FeatureEngineer(BaseEstimator, TransformerMixin):
         # Groups
         X['tenure_group'] = pd.cut(
             X['tenure'],
-            bins=[0, 12, 24, 48, 72],
-            labels=['0-1yr', '1-2yr', '2-4yr', '4-6yr']
+            bins=[0, 12, 24, 48, float('inf')],
+            labels=['0-1yr', '1-2yr', '2-4yr', '4-6yr'],
+            include_lowest=True
         )
 
         X['avg_revenue'] = X['TotalCharges'] / (X['tenure'] + 1)
