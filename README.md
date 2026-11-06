@@ -35,6 +35,7 @@ The repository follows a **production-style ML project layout**.
 ├── README.md
 ├── config.yaml
 ├── pyproject.toml
+├── requirements-dev.txt
 ├── requirements.txt
 ├── api
 │   ├── main.py
@@ -42,8 +43,6 @@ The repository follows a **production-style ML project layout**.
 ├── data
 │   ├── examples
 │   │   └── example_dict.json
-│   ├── external
-│   ├── processed
 │   └── raw
 │       └── telco_churn.csv
 ├── logs
@@ -59,6 +58,7 @@ The repository follows a **production-style ML project layout**.
 ├── output
 ├── scripts
 │   ├── predict.py
+│   ├── promote.py
 │   └── train.py
 ├── churn
 │   ├── config.py
@@ -72,9 +72,13 @@ The repository follows a **production-style ML project layout**.
 │   └── train_model.py
 └── tests
     ├── test_api.py
+    ├── test_config.py
     ├── test_data_loader.py
     ├── test_model.py
-    └── test_predict.py
+    ├── test_predict.py
+    ├── test_preprocessing.py
+    ├── test_promote.py
+    └── test_train_model.py
 ```
 
 ---
@@ -126,11 +130,11 @@ source .venv/bin/activate
 Install dependencies:
 
 ```
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 pip install -e .
 ```
 
-The second command installs the project in editable mode, so `churn` can be imported from anywhere.
+`requirements.txt` holds the pinned runtime dependencies (this is what the Docker image installs). `requirements-dev.txt` includes it and adds the test and lint tools. The second command installs the project in editable mode, so `churn` can be imported from anywhere.
 
 ---
 
@@ -149,11 +153,13 @@ model_type: "logistic_regression"
 model_version: "v1"
 ```
 
-To change the model type or training parameters, edit this file — no code changes needed. You can also pass an alternative config file when training:
+To change the model type or training parameters, edit this file — no code changes needed. You can also pass an override file when training:
 
 ```
-python -m scripts.train --config path/to/other_config.yaml
+python -m scripts.train --config path/to/override.yaml
 ```
+
+The override file only needs the keys you want to change; they are merged over `config.yaml`. Unknown keys and invalid values (such as an unknown `model_type` or a `test_size` outside 0–1) are rejected with an error.
 
 ---
 
@@ -196,7 +202,7 @@ Run training:
 python -m scripts.train
 ```
 
-Artifacts are saved to `models/current/`:
+Artifacts are saved to `models/<model_version>/<timestamp>/` (for example `models/v1/261106_141423/`):
 
 | File | Description |
 |----|----|
@@ -214,17 +220,25 @@ Models are stored in the `models/` directory.
 
 ```
 models/
-├── current/          # Latest model (tracked in git)
+├── current/          # The model the API and batch predictions use (tracked in git)
 │   ├── model.pkl
 │   ├── preprocessor.pkl
 │   ├── metrics.json
-│   └── config.json
-└── v1/               # Historical versions (git-ignored)
+│   ├── config.json
+│   └── proxy_input.csv
+└── v1/<timestamp>/   # Every training run (git-ignored)
 ```
 
-- `current/` holds the latest model and is tracked in git so the API works immediately after cloning
-- Older versions are archived under `v1/`, `v2/`, etc. and are git-ignored to avoid bloating the repo
-- The model loader validates that model and preprocessor come from the same directory and that a `config.json` is present
+- Training never touches `current/`. Promoting a model is an explicit step:
+
+  ```
+  python scripts/promote.py models/v1/<timestamp>
+  ```
+
+  It copies the five artifacts into `models/current/`, and refuses to copy anything if one is missing.
+- `current/` is tracked in git so the API works immediately after cloning. Training runs are git-ignored to avoid bloating the repo.
+- Set the `CHURN_MODEL_DIR` environment variable to make the API and batch predictions load a different model folder. CI uses this to test the model it just trained.
+- The model loader validates that model and preprocessor come from the same directory and that a `config.json` is present.
 
 ---
 
@@ -236,11 +250,13 @@ Run batch predictions with:
 python -m scripts.predict
 ```
 
-By default, reads from `models/current/proxy_input.csv` (the test split saved by training, used as a stand-in for new data) and writes to a timestamped directory under `output/`. You can override paths:
+By default, uses the model in `models/current/`, reads that folder's `proxy_input.csv` (the test split saved by training, used as a stand-in for new data) and writes to a timestamped directory under `output/`. You can override each of these:
 
 ```
-python -m scripts.predict --input path/to/data.csv --output path/to/results.csv
+python -m scripts.predict --model-dir models/v1/<timestamp> --input path/to/data.csv --output path/to/results.csv
 ```
+
+If `--model-dir` is given without `--input`, the input defaults to that folder's own `proxy_input.csv`.
 
 Input data is validated against a required column list before preprocessing.
 
@@ -321,25 +337,32 @@ All API inputs are validated with Pydantic using `Literal` types for categorical
 - `Contract` only accepts `"Month-to-month"`, `"One year"`, or `"Two year"`
 - `tenure` must be >= 0
 - `MonthlyCharges` must be >= 0
+- `TotalCharges` is a string, as in the raw data. It must be a finite number >= 0, or blank (the dataset has blanks for brand-new customers)
 
 ---
 
 # Testing
 
-The test suite covers model loading, prediction logic, API endpoints, data loading, and input validation.
+The test suite (39 tests) covers configuration, model loading and promotion, prediction logic, API endpoints, data loading, and input validation.
 
 | Test File | Tests | What it covers |
 |-----------|-------|---------------|
-| test_api.py | 9 | Health check, prediction, invalid inputs (bad gender, contract, negative tenure, etc.) |
+| test_api.py | 14 | Health check, prediction, invalid inputs (gender, contract, tenure, charges, `TotalCharges` format), blank `TotalCharges` |
+| test_config.py | 9 | `model_type` validation, config overrides, unknown keys, invalid values, model path, `CHURN_MODEL_DIR` |
 | test_data_loader.py | 2 | Successful load, missing file error |
 | test_model.py | 3 | Model/preprocessor loading, required methods |
 | test_predict.py | 4 | Single prediction, output columns, missing columns, probability range |
+| test_preprocessing.py | 2 | `tenure_group` covers every tenure value |
+| test_promote.py | 3 | Promotion copies all artifacts, overwrites, refuses an incomplete folder |
+| test_train_model.py | 2 | Seeded training is reproducible, a different seed changes the model |
 
 Run all tests:
 
 ```
-pytest tests/ -v
+pytest
 ```
+
+The tests use the model in `models/current/`, or the folder named by `CHURN_MODEL_DIR`.
 
 ---
 
@@ -351,11 +374,11 @@ The pipeline runs two jobs:
 
 ### Lint and Test
 
-1. Install dependencies
+1. Install dependencies (`requirements-dev.txt` and the package itself)
 2. **Lint** with `ruff` — catches style issues, unused imports, common mistakes
 3. **Type check** with `mypy` — verifies type hint consistency
-4. **Train model** — trains from scratch so integration tests can run
-5. **Run tests** — full test suite (18 tests)
+4. **Train model** — trains from scratch into `models/v1/<timestamp>/`
+5. **Run tests** — full test suite, pointed at the freshly trained model through `CHURN_MODEL_DIR`, so CI tests the model it just built rather than the committed one
 
 ### Docker Build
 
@@ -398,7 +421,7 @@ The `churn/` package contains the **modular ML pipeline components**. All functi
 
 | Module | Purpose |
 |------|------|
-| config.py | Loads configuration from `config.yaml`, defines project paths |
+| config.py | Project paths, `load_config` (defaults + optional override file, validated), `get_model_path` |
 | data_loader.py | Data ingestion with file existence and empty data validation |
 | preprocessing.py | Feature engineering, cleaning, and sklearn preprocessing pipelines |
 | train_model.py | Model training (logistic regression, random forest, gradient boosting) |
