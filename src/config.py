@@ -25,3 +25,11 @@ OUTPUT_DIR = BASE_DIR / "output" / TIMESTAMP
 LOG_DIR = BASE_DIR / "logs"
 
 MODELS_FAMILY = {"logistic_regression": "linear", "random_forest": "tree", "gradient_boosting": "tree"}
+
+
+def validate_model_type(model_type: str) -> None:
+    """Raise a clear error if model_type is not a supported model."""
+    if model_type not in MODELS_FAMILY:
+        raise ValueError(
+            f"Unknown model_type '{model_type}'. Valid options: {', '.join(MODELS_FAMILY)}"
+        )

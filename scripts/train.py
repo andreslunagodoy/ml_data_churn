@@ -3,7 +3,7 @@ import argparse
 import joblib
 import json
 
-from src.config import CONFIG, MODEL_PATH, MODELS_FAMILY, TIMESTAMP
+from src.config import CONFIG, MODEL_PATH, MODELS_FAMILY, TIMESTAMP, validate_model_type
 from src.logger import setup_logger
 from src.data_loader import load_raw_data
 from src.preprocessing import get_preprocessor, NUMERIC_FEATURES, CATEGORICAL_FEATURES, ENGINEERED_FEATURES
@@ -22,6 +22,7 @@ def main():
         import yaml
         with open(args.config) as f:
             CONFIG.update(yaml.safe_load(f))
+    validate_model_type(CONFIG['model_type'])
     # Start logger
     logger.info("Starting training pipeline")
 

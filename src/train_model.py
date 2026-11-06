@@ -17,5 +17,8 @@ def train_model(X: np.ndarray, y: np.ndarray, model_type: str) -> BaseEstimator:
         # Instantiate baseline gradient boosting
         model = GradientBoostingClassifier(random_state=42, n_estimators=100, learning_rate=0.1)
 
+    else:
+        raise ValueError(f"Unknown model_type '{model_type}'")
+
     model.fit(X,y)
     return model
