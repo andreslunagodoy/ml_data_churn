@@ -56,7 +56,7 @@ def main():
     logger.info(f"Finished preprocessing for a {MODELS_FAMILY[CONFIG['model_type']]}-type model")
 
     # Train model
-    model = train_model(X_train, y_train, CONFIG['model_type'])
+    model = train_model(X_train, y_train, CONFIG['model_type'], CONFIG['random_state'])
     logger.info(f"Completed training a {CONFIG['model_type']} model")
 
     # Evaluate
