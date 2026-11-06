@@ -3,12 +3,12 @@ import argparse
 import joblib
 import json
 
-from src.config import load_config, get_model_path, MODELS_FAMILY, TIMESTAMP
-from src.logger import setup_logger
-from src.data_loader import load_raw_data
-from src.preprocessing import get_preprocessor, NUMERIC_FEATURES, CATEGORICAL_FEATURES, ENGINEERED_FEATURES
-from src.train_model import train_model
-from src.evaluate import evaluate_model
+from churn.config import load_config, get_model_path, MODELS_FAMILY, TIMESTAMP
+from churn.logger import setup_logger
+from churn.data_loader import load_raw_data
+from churn.preprocessing import get_preprocessor, NUMERIC_FEATURES, CATEGORICAL_FEATURES, ENGINEERED_FEATURES
+from churn.train_model import train_model
+from churn.evaluate import evaluate_model
 
 
 logger = setup_logger(f"train_pipeline_{TIMESTAMP}")

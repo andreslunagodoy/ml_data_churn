@@ -5,7 +5,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.impute import SimpleImputer
 
-from src.config import MODELS_FAMILY
+from churn.config import MODELS_FAMILY
 
 ### CLEANING DATA
 

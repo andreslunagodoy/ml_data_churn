@@ -60,7 +60,7 @@ The repository follows a **production-style ML project layout**.
 ├── scripts
 │   ├── predict.py
 │   └── train.py
-├── src
+├── churn
 │   ├── config.py
 │   ├── data_loader.py
 │   ├── evaluate.py
@@ -127,7 +127,10 @@ Install dependencies:
 
 ```
 pip install -r requirements.txt
+pip install -e .
 ```
+
+The second command installs the project in editable mode, so `churn` can be imported from anywhere.
 
 ---
 
@@ -391,7 +394,7 @@ These represent the progression from notebook prototype to production code.
 
 # Core Source Modules
 
-The `src/` package contains the **modular ML pipeline components**. All functions include type hints.
+The `churn/` package contains the **modular ML pipeline components**. All functions include type hints.
 
 | Module | Purpose |
 |------|------|

@@ -1,5 +1,5 @@
 import logging
-from src.config import LOG_DIR
+from churn.config import LOG_DIR
 
 def setup_logger(name: str):
     LOG_DIR.mkdir(exist_ok=True)

@@ -3,8 +3,8 @@ import subprocess
 import sys
 
 import pytest
-from src.config import BASE_DIR, MODEL_DIR, get_model_path, load_config, validate_model_type
-from src.train_model import train_model
+from churn.config import BASE_DIR, MODEL_DIR, get_model_path, load_config, validate_model_type
+from churn.train_model import train_model
 
 
 def test_validate_model_type_accepts_valid_types():
@@ -57,7 +57,7 @@ def test_model_path_follows_override(tmp_path):
 
 
 def test_current_model_dir_can_be_set_by_env_var(tmp_path):
-    code = "from src.config import CURRENT_MODEL_DIR; print(CURRENT_MODEL_DIR)"
+    code = "from churn.config import CURRENT_MODEL_DIR; print(CURRENT_MODEL_DIR)"
     env = {**os.environ, "CHURN_MODEL_DIR": str(tmp_path)}
     result = subprocess.run(
         [sys.executable, "-c", code], cwd=BASE_DIR, env=env, capture_output=True, text=True, check=True

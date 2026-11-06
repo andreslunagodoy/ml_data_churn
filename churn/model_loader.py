@@ -2,7 +2,7 @@ import joblib
 from pathlib import Path
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
-from src.config import CURRENT_MODEL_DIR
+from churn.config import CURRENT_MODEL_DIR
 
 def load_model(
     model_path: Path = CURRENT_MODEL_DIR / "model.pkl",

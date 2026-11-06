@@ -1,8 +1,8 @@
 import pytest
 import pandas as pd
-from src.predict_single import predict_single
-from src.predict import predict_df
-from src.model_loader import load_model
+from churn.predict_single import predict_single
+from churn.predict import predict_df
+from churn.model_loader import load_model
 
 SAMPLE_INPUT = {
     "customerID":"3524-WQDSG",

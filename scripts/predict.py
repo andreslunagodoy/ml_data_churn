@@ -1,9 +1,9 @@
 import argparse
 from pathlib import Path
 import pandas as pd
-from src.config import CURRENT_MODEL_DIR, OUTPUT_DIR
-from src.model_loader import load_model
-from src.predict import predict_df
+from churn.config import CURRENT_MODEL_DIR, OUTPUT_DIR
+from churn.model_loader import load_model
+from churn.predict import predict_df
 
 def main():
     parser = argparse.ArgumentParser(description="Run batch churn predictions")

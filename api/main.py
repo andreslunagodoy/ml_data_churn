@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
-from src.predict_single import predict_single
+from churn.predict_single import predict_single
 from api.schemas import CustomerFeatures, PredictionResponse
-from src.model_loader import load_model
+from churn.model_loader import load_model
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

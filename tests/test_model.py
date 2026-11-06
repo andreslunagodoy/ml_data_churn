@@ -1,4 +1,4 @@
-from src.model_loader import load_model
+from churn.model_loader import load_model
 
 def test_load_model():
     model, preprocessor = load_model()

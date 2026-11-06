@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.datasets import make_classification
-from src.train_model import train_model
+from churn.train_model import train_model
 
 
 def _proba(random_state):

@@ -1,5 +1,5 @@
 import pandas as pd
-from src.preprocessing import FeatureEngineer
+from churn.preprocessing import FeatureEngineer
 
 
 def _groups(tenures):

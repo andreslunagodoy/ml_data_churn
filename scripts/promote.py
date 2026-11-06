@@ -1,7 +1,7 @@
 import argparse
 import shutil
 from pathlib import Path
-from src.config import MODEL_DIR
+from churn.config import MODEL_DIR
 
 ARTIFACTS = ["model.pkl", "preprocessor.pkl", "metrics.json", "config.json", "proxy_input.csv"]
 

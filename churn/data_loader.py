@@ -1,6 +1,6 @@
 import pandas as pd
 from pathlib import Path
-from src.config import RAW_DATA_PATH
+from churn.config import RAW_DATA_PATH
 
 def load_raw_data(path: Path = RAW_DATA_PATH) -> pd.DataFrame:
     if not path.exists():

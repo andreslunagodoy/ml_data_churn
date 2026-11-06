@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from src.data_loader import load_raw_data
+from churn.data_loader import load_raw_data
 
 def test_load_raw_data_success():
     df = load_raw_data()
