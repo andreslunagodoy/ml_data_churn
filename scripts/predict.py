@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 import pandas as pd
-from src.config import MODEL_DIR, OUTPUT_DIR
+from src.config import CURRENT_MODEL_DIR, OUTPUT_DIR
 from src.model_loader import load_model
 from src.predict import predict_df
 
@@ -9,7 +9,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run batch churn predictions")
     parser.add_argument(
         "--model-dir", type=str, default=None,
-        help="Folder with model.pkl and preprocessor.pkl (default: models/current)"
+        help="Folder with model.pkl and preprocessor.pkl (default: models/current, or $CHURN_MODEL_DIR if set)"
     )
     parser.add_argument(
         "--input", type=str, default=None,
@@ -21,7 +21,7 @@ def main():
     )
     args = parser.parse_args()
 
-    model_dir = Path(args.model_dir) if args.model_dir else MODEL_DIR / "current"
+    model_dir = Path(args.model_dir) if args.model_dir else CURRENT_MODEL_DIR
     input_data_path = Path(args.input) if args.input else model_dir / "proxy_input.csv"
     output_path = Path(args.output) if args.output else OUTPUT_DIR / "predictions.csv"
 

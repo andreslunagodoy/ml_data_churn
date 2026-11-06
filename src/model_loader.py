@@ -2,11 +2,11 @@ import joblib
 from pathlib import Path
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
-from src.config import MODEL_DIR
+from src.config import CURRENT_MODEL_DIR
 
 def load_model(
-    model_path: Path = MODEL_DIR / "current/model.pkl",
-    preprocessor_path: Path = MODEL_DIR / "current/preprocessor.pkl"
+    model_path: Path = CURRENT_MODEL_DIR / "model.pkl",
+    preprocessor_path: Path = CURRENT_MODEL_DIR / "preprocessor.pkl"
 ) -> tuple[BaseEstimator, Pipeline]:
     """Load model and preprocessor. Paths can be overridden if needed."""
 

@@ -30,8 +30,10 @@ jobs:
       - name: Train model
         run: python -m scripts.train
 
-      - name: Run tests
-        run: python -m pytest tests/ -v
+      - name: Run tests against the freshly trained model
+        run: |
+          export CHURN_MODEL_DIR=$(realpath "$(ls -d models/v1/*/ | head -1)")
+          python -m pytest tests/ -v
 
   docker-build:
     runs-on: ubuntu-latest

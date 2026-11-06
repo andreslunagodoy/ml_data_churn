@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from datetime import datetime
 from typing import Any
@@ -12,6 +13,9 @@ DATA_DIR = BASE_DIR / "data"
 RAW_DATA_PATH = DATA_DIR / "raw" / "telco_churn.csv"
 
 MODEL_DIR = BASE_DIR / "models"
+# Folder the API and batch predictions load the model from.
+# Defaults to models/current; set CHURN_MODEL_DIR to use another model.
+CURRENT_MODEL_DIR = Path(os.environ.get("CHURN_MODEL_DIR", MODEL_DIR / "current"))
 
 OUTPUT_DIR = BASE_DIR / "output" / TIMESTAMP
 

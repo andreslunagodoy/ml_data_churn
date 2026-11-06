@@ -7,5 +7,6 @@
     "test_size": 0.2,
     "random_state": 42,
     "model_type": "logistic_regression",
-    "timestamp": "260305_160127"
+    "model_version": "v1",
+    "timestamp": "261106_125922"
 }

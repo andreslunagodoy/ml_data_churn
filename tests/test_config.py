@@ -1,5 +1,9 @@
+import os
+import subprocess
+import sys
+
 import pytest
-from src.config import MODEL_DIR, get_model_path, load_config, validate_model_type
+from src.config import BASE_DIR, MODEL_DIR, get_model_path, load_config, validate_model_type
 from src.train_model import train_model
 
 
@@ -50,3 +54,12 @@ def test_override_rejects_invalid_values(tmp_path):
 def test_model_path_follows_override(tmp_path):
     config = load_config(_override(tmp_path, 'model_version: "v2"\n'))
     assert get_model_path(config) == MODEL_DIR / "v2" / config["timestamp"]
+
+
+def test_current_model_dir_can_be_set_by_env_var(tmp_path):
+    code = "from src.config import CURRENT_MODEL_DIR; print(CURRENT_MODEL_DIR)"
+    env = {**os.environ, "CHURN_MODEL_DIR": str(tmp_path)}
+    result = subprocess.run(
+        [sys.executable, "-c", code], cwd=BASE_DIR, env=env, capture_output=True, text=True, check=True
+    )
+    assert result.stdout.strip() == str(tmp_path)
