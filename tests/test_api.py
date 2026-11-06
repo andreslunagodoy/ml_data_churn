@@ -84,3 +84,16 @@ def test_invalid_senior_citizen(client):
     bad_input["SeniorCitizen"] = 2
     response = client.post("/predict", json=bad_input)
     assert response.status_code == 422
+
+def test_blank_total_charges_is_accepted(client):
+    new_customer = VALID_INPUT.copy()
+    new_customer["TotalCharges"] = " "
+    response = client.post("/predict", json=new_customer)
+    assert response.status_code == 200
+
+@pytest.mark.parametrize("bad_value", ["abc", "-5", "nan", "inf"])
+def test_invalid_total_charges(client, bad_value):
+    bad_input = VALID_INPUT.copy()
+    bad_input["TotalCharges"] = bad_value
+    response = client.post("/predict", json=bad_input)
+    assert response.status_code == 422

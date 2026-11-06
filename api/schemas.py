@@ -1,5 +1,6 @@
+import math
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 class CustomerFeatures(BaseModel):
     customerID: str
@@ -24,6 +25,19 @@ class CustomerFeatures(BaseModel):
         'Bank transfer (automatic)', 'Credit card (automatic)']
     MonthlyCharges: float = Field(ge=0)
     TotalCharges: str
+
+    @field_validator('TotalCharges')
+    @classmethod
+    def total_charges_is_blank_or_non_negative_number(cls, v: str) -> str:
+        if v.strip() == '':
+            return v  # the training data has blanks for brand-new customers
+        try:
+            number = float(v)
+        except ValueError:
+            raise ValueError('TotalCharges must be a number or blank')
+        if not math.isfinite(number) or number < 0:
+            raise ValueError('TotalCharges must be a finite number >= 0')
+        return v
 
 class PredictionResponse(BaseModel):
     prediction: int
